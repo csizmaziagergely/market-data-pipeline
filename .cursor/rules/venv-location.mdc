@@ -1,0 +1,22 @@
+---
+description: Virtual environment location and activation requirement
+alwaysApply: true
+---
+
+# Virtual Environment
+
+The project virtual environment is located at `venv/` in the root of the repository.
+
+Always activate it before running any Python commands:
+
+```powershell
+# Windows (PowerShell)
+venv\Scripts\Activate.ps1
+```
+
+```bash
+# Unix/macOS
+source venv/bin/activate
+```
+
+Never run `python`, `pip`, or any project scripts without the venv active.
