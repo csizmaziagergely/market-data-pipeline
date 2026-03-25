@@ -1,0 +1,10 @@
+# Virtual environment
+venv/
+
+# Temporary output files
+temp/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
