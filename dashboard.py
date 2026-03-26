@@ -145,7 +145,7 @@ with left:
         color_discrete_sequence=["#4f8ef7"],
     )
     fig.update_layout(margin=dict(t=10, b=10), height=300)
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width="stretch")
 
 with right:
     st.subheader("Open-access status")
@@ -164,7 +164,7 @@ with right:
         color_discrete_sequence=px.colors.qualitative.Pastel,
     )
     fig.update_layout(margin=dict(t=10, b=10), height=300, showlegend=True)
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width="stretch")
 
 st.divider()
 
@@ -192,7 +192,7 @@ with left2:
         color_discrete_sequence=["#60a5fa"],
     )
     fig.update_layout(margin=dict(t=10, b=10), height=420)
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width="stretch")
 
 with right2:
     st.subheader("Top primary subfields (excl. Artificial Intelligence)")
@@ -214,7 +214,7 @@ with right2:
         color_discrete_sequence=["#6ec6a0"],
     )
     fig.update_layout(margin=dict(t=10, b=10), height=420)
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width="stretch")
 
 st.divider()
 
@@ -254,7 +254,7 @@ with left3:
         color_discrete_sequence=["#a78bfa"],
     )
     fig.update_layout(margin=dict(t=10, b=10), height=320)
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width="stretch")
 
 with right3:
     st.subheader("International collaboration (2+ countries)")
@@ -277,7 +277,7 @@ with right3:
         color_discrete_sequence=["#f472b6"],
     )
     fig.update_layout(margin=dict(t=10, b=10), height=320)
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width="stretch")
 
 st.divider()
 
@@ -296,7 +296,7 @@ top_cited.columns = [
     "Title", "First Author", "Published", "Journal",
     "Citations", "FWCI", "OA", "Subfield",
 ]
-st.dataframe(top_cited, use_container_width=True)
+st.dataframe(top_cited, width="stretch")
 
 # ── Footer ────────────────────────────────────────────────────────────────────
 
