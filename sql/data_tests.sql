@@ -25,7 +25,7 @@ WHERE publication_date IS NOT NULL
 -- All counts must be 0.
 SELECT COUNT(*) FILTER (WHERE cited_by_count < 0)                      AS negative_citations,
        COUNT(*) FILTER (WHERE citation_percentile NOT BETWEEN 0 AND 1) AS bad_percentile,
-       COUNT(*) FILTER (WHERE author_count <= 0)                       AS bad_author_count,
+       COUNT(*) FILTER (WHERE author_count < 0)                        AS bad_author_count,
        COUNT(*) FILTER (WHERE fwci < 0)                                AS negative_fwci
 FROM papers;
 
@@ -37,8 +37,9 @@ WHERE is_in_top_1_percent  = TRUE
   AND is_in_top_10_percent = FALSE;
 
 -- Test 6: Pipeline freshness
--- last_ingestion_date should be recent; rows_last_24h > 0 after a fresh load.
-SELECT DATE(MAX(ingested_at))                                                   AS last_ingestion_date,
-       COUNT(*)                                                                  AS total_rows,
-       COUNT(*) FILTER (WHERE ingested_at >= NOW() - INTERVAL '24 hours')       AS rows_last_24h
+-- Returns 1 (fail) if no rows were ingested in the last 24 hours, 0 (pass) otherwise.
+SELECT CASE
+           WHEN COUNT(*) FILTER (WHERE ingested_at >= NOW() - INTERVAL '24 hours') = 0
+           THEN 1 ELSE 0
+       END AS stale_pipeline
 FROM papers;

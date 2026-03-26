@@ -6,15 +6,13 @@ A pipeline that fetches recent AI research papers from the [OpenAlex](https://op
 
 ```
 market-data-pipeline/
-├── fetch_ai_papers.py      # Fetch recent AI papers from OpenAlex and save to temp/
-├── process_papers.py       # Load a JSON file into the database (create table + insert)
+├── pipeline.py             # End-to-end pipeline: fetch → create table → load → test
+├── data_test.py            # Standalone runner for data-quality tests only
 ├── db.py                   # Database connection helper (reads credentials from .env)
-├── create_table.py         # Standalone script to create the papers table and indexes
-├── load_papers.py          # Standalone script to load the latest temp/ JSON into the DB
 ├── sql/
 │   ├── create_papers_table.sql   # DDL: papers table definition and indexes
-│   └── insert_papers.sql         # DML: bulk insert with duplicate handling
-├── temp/                   # Output directory for fetched JSON files (gitignored)
+│   ├── insert_papers.sql         # DML: bulk insert with duplicate handling
+│   └── data_tests.sql            # SQL data-quality test queries
 ├── requirements.txt
 └── .env                    # Database credentials (gitignored)
 ```
@@ -46,27 +44,41 @@ The database connects to the Neon PostgreSQL instance defined in `db.py`. The `.
 
 ## Usage
 
-### 1. Fetch papers
+### Run the full pipeline
 
-Fetches AI papers published in the last 3 days from OpenAlex and saves them to `temp/<timestamp>.json`:
-
-```powershell
-python fetch_ai_papers.py
-```
-
-### 2. Process and load into the database
-
-Takes a JSON file as input, creates the `papers` table if it does not exist, and inserts the data. Duplicate papers (matched by OpenAlex ID) are automatically skipped.
+Fetches AI papers published in the last 3 days from OpenAlex, creates the `papers` table if it does not exist, bulk-inserts the results (duplicates skipped), and runs all data-quality tests.
 
 ```powershell
-python process_papers.py temp\<timestamp>.json
+python pipeline.py
 ```
 
-Example:
+### Run data-quality tests only
+
+Connects to the database and runs the six SQL tests against the existing `papers` table without fetching or loading any data.
 
 ```powershell
-python process_papers.py temp\20260325_150341.json
+python data_test.py
 ```
+
+## Pipeline Steps
+
+| Step | What it does |
+|---|---|
+| **1. Fetch** | Looks up the OpenAlex AI taxonomy IDs, then paginates through all works published in the last 3 days that belong to the Artificial Intelligence subfield or field. |
+| **2. Create table** | Runs `sql/create_papers_table.sql` with `CREATE TABLE IF NOT EXISTS` — safe to re-run. |
+| **3. Load** | Maps each raw API response to the flat `papers` schema and bulk-inserts rows. Duplicate `openalex_id` values are silently skipped via `ON CONFLICT DO NOTHING`. |
+| **4. Test** | Runs the six queries in `sql/data_tests.sql` and prints a PASS/FAIL table. Exits with code `1` if any test fails. |
+
+## Data-Quality Tests
+
+| Test | What it checks |
+|---|---|
+| NOT NULL / required fields | `openalex_id`, `title`, `publication_year`, and `type` are never NULL |
+| Primary key uniqueness | No duplicate `openalex_id` values exist |
+| Date / year consistency | `EXTRACT(YEAR FROM publication_date)` matches `publication_year` |
+| Numeric range sanity | No negative `cited_by_count`, `fwci`, or `author_count`; `citation_percentile` in \[0, 1\] |
+| Top-percentile consistency | Every paper in the top 1% is also in the top 10% |
+| Pipeline freshness | At least one row was ingested in the last 24 hours |
 
 ## Database Schema
 
